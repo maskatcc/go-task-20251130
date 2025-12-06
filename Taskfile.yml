@@ -1,0 +1,44 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+  
+  ts_exec:
+    cmds:
+      - npx tsx src/index.ts
+
+  loop_static:
+    cmds:
+      - for: [ '.gitignore' ]
+        cmd: cat {{ .ITEM }}
+
+  loop_matrix:
+    vars:
+      OS_VAR: [ 'linux', 'windows', 'darwin' ]
+      ARCH_VAR: [ 'amd64', 'arm64' ]
+    cmds:
+      - for:
+          matrix:
+            OS: 
+              ref: .OS_VAR
+            ARCH:
+              ref: .ARCH_VAR
+        cmd: 
+          echo "{{ .ITEM.OS }}/{{ .ITEM.ARCH }}"
+
+  loop_sources:
+    sources:
+      - package.json
+      - .gitignore
+    cmds:
+      - for: sources
+        cmd: 
+          cat {{ .ITEM }}
