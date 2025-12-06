@@ -92,3 +92,21 @@ tasks:
     deps: [clean-func1]
     cmds:
       - task: build-func1
+
+  clean-funcs:
+    cmds:
+      - rm -rf dist/funcs/
+    silent: true
+  
+  build-funcs:
+    sources:
+      - src/funcs/**/*.ts
+    cmds:
+      - npx tsc
+    generates:
+      - dist/funcs/**/*.js
+  
+  rebuild-funcs:
+    deps: [clean-funcs]
+    cmds:
+      - task: build-funcs
