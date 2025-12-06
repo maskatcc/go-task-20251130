@@ -42,3 +42,35 @@ tasks:
       - for: sources
         cmd: 
           cat {{ .ITEM }}
+
+  clean:
+    sources:
+      - dist/*.js
+      - dist/*.map
+    cmds:
+      - npx tsx tasks/clean.ts
+      - rm -rf dist/
+
+  build:
+    sources:
+      - src/*.ts
+    cmds:
+      - npx tsx tasks/build.ts
+      - npx tsc
+    generates:
+      - dist/*.js
+
+  rebuild:
+    deps: [clean]
+    cmds:
+      - task: build
+
+  upload:
+    deps: [build]
+    cmds:
+      - npx tsx tasks/upload.ts
+
+  deploy:
+    deps: [upload]
+    cmds:
+      - npx tsx tasks/deploy.ts
