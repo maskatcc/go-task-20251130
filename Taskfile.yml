@@ -74,3 +74,21 @@ tasks:
     deps: [upload]
     cmds:
       - npx tsx tasks/deploy.ts
+
+  clean-func1:
+    cmds:
+      - rm -rf dist/funcs/func1/
+    silent: true
+  
+  build-func1:
+    sources:
+      - src/funcs/func1/*.ts
+    cmds:
+      - npx tsc
+    generates:
+      - dist/funcs/func1/*.js
+
+  rebuild-func1:
+    deps: [clean-func1]
+    cmds:
+      - task: build-func1
