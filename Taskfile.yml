@@ -4,32 +4,41 @@ version: '3'
 
 tasks:
   default:
+    desc: build all funcs.
     cmds:
       - task: build-all
   
-  clean:
+  clean:*:
+    desc: clean up artifact for specific func (* is func name).
+    vars:
+      FUNC: '{{ index .MATCH 0 }}'
     requires:
-      vars: [FUNC]
+      vars: [ FUNC ]
     cmds:
-      - rm -rf dist/funcs/{{.FUNC}}/
+      - rm -rf dist/funcs/{{ .FUNC }}/
     silent: true
 
   clean-all:
+    desc: clean up all artifacts.
     cmds:
       - rm -rf dist/funcs/
     silent: true
 
-  build:
+  build:*:
+    desc: build specific func (* is func name).
+    vars:
+      FUNC: '{{ index .MATCH 0 }}'
     requires:
-      vars: [FUNC]
+      vars: [ FUNC ]
     sources:
-      - src/funcs/{{.FUNC}}/*.ts
+      - src/funcs/{{ .FUNC }}/*.ts
     cmds:
-      - npx tsx tasks/build.ts {{.FUNC}}
+      - npx tsx tasks/build.ts {{ .FUNC }}
     generates:
-      - dist/funcs/{{.FUNC}}/*.js
+      - dist/funcs/{{ .FUNC }}/*.js
 
   build-all:
+    desc: build all funcs.
     vars:
       FUNC_NAMES:
         sh: |
@@ -39,28 +48,36 @@ tasks:
       - src/funcs/**/*.ts
     cmds:
       - for: { var: FUNC_NAMES }
-        task: build
-        vars: 
-          FUNC: '{{ .ITEM }}'
+        task: build:{{ .ITEM }}
     generates:
       - dist/funcs/**/*.js
 
-  rebuild:
-    deps: [clean]
+  rebuild:*:
+    desc: rebuild specific func (* is func name).
+    vars:
+      FUNC: '{{ index .MATCH 0 }}'
+    deps: 
+      - clean:{{ .FUNC }}
     cmds:
-      - task: build
+      - task: build:{{ .FUNC }}
 
   rebuild-all:
-    deps: [clean-all]
+    desc: rebuild all funcs.
+    deps: 
+      - clean-all
     cmds:
       - task: build-all
 
-  upload:
-    deps: [build]
+  upload-all:
+    desc: upload all funcs to S3.
+    deps: 
+      - build-all
     cmds:
       - npx tsx tasks/upload.ts
 
-  deploy:
-    deps: [upload]
+  deploy-all:
+    desc: deploy all funcs in Lambda.
+    deps:
+      - upload-all
     cmds:
       - npx tsx tasks/deploy.ts

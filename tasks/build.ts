@@ -51,4 +51,4 @@ const result = await esbuild.build({
   process.exit(1)
 })
 
-console.info('Build successful!')
+console.info('build successful!')
