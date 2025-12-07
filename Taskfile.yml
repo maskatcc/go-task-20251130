@@ -93,6 +93,28 @@ tasks:
     cmds:
       - task: build-func1
 
+  clean-func:
+    requires:
+      vars: [FUNC]
+    cmds:
+      - rm -rf dist/funcs/{{.FUNC}}/
+    silent: true
+  
+  build-func:
+    requires:
+      vars: [FUNC]
+    sources:
+      - src/funcs/{{.FUNC}}/*.ts
+    cmds:
+      - npx tsx tasks/build.ts {{.FUNC}}
+    generates:
+      - dist/funcs/{{.FUNC}}/*.js
+
+  rebuild-func:
+    deps: [clean-func]
+    cmds:
+      - task: build-func
+
   clean-funcs:
     cmds:
       - rm -rf dist/funcs/
