@@ -68,16 +68,97 @@ tasks:
     cmds:
       - task: build-all
 
+  package:*:
+    desc: package specific func (* is func name).
+    vars:
+      FUNC: '{{ index .MATCH 0 }}'
+    requires:
+      vars: [ FUNC ]
+    deps: 
+      - build:{{ .FUNC }}
+    sources:
+      - dist/funcs/{{ .FUNC }}/*.js
+    cmds:
+      - npx tsx tasks/package.ts {{ .FUNC }}
+    generates:
+      - dist/packages/{{ .FUNC }}.zip
+
+  package-all:
+    desc: package all funcs.
+    vars:
+      FUNC_NAMES:
+        sh: |
+          npx tsx tasks/find-funcs.ts
+    sources:
+      - dist/funcs/**/*.js
+    cmds:
+      - for: { var: FUNC_NAMES }
+        task: package:{{ .ITEM }}
+    generates:
+      - dist/packages/*.zip
+
+  download:*:
+    desc: download specific func (* is func name).
+    vars:
+      FUNC: '{{ index .MATCH 0 }}'
+    requires:
+      vars: [ FUNC ]
+    cmds:
+      - npx tsx tasks/download.ts {{ .FUNC }}
+    generates:
+      - dist/uploads/{{ .FUNC }}.zip
+
+  upload:*:
+    desc: upload specific func (* is func name).
+    vars:
+      FUNC: '{{ index .MATCH 0 }}'
+    requires:
+      vars: [ FUNC ]
+    deps: 
+      - package:{{ .FUNC }}
+      - download:{{ .FUNC }}
+    sources:
+      - dist/packages/{{ .FUNC }}.zip
+    cmds:
+      - npx tsx tasks/upload.ts {{ .FUNC }}
+    generates:
+      - dist/uploads/{{ .FUNC }}.zip
+
   upload-all:
     desc: upload all funcs to S3.
-    deps: 
-      - build-all
+    vars:
+      FUNC_NAMES:
+        sh: |
+          npx tsx tasks/find-funcs.ts
+    deps:
+      - package-all   # すべての関数をzipパッケージにしてからアップロードを開始する
+    sources:
+      - dist/packages/*.zip
     cmds:
-      - npx tsx tasks/upload.ts
+      - for: { var: FUNC_NAMES }
+        task: upload:{{ .ITEM }}
+    generates:
+      - dist/uploads/*.zip
+
+  deploy:*:
+    desc: deploy specific func (* is func name).
+    vars:
+      FUNC: '{{ index .MATCH 0 }}'
+    requires:
+      vars: [ FUNC ]
+    deps: 
+      - upload:{{ .FUNC }}
+    cmds:
+      - npx tsx tasks/deploy.ts {{ .FUNC }}
 
   deploy-all:
     desc: deploy all funcs in Lambda.
+    vars:
+      FUNC_NAMES:
+        sh: |
+          npx tsx tasks/find-funcs.ts
     deps:
-      - upload-all
+      - upload-all   # すべての関数をアップロードしてからデプロイを開始する
     cmds:
-      - npx tsx tasks/deploy.ts
+      - for: { var: FUNC_NAMES }
+        task: deploy:{{ .ITEM }}
