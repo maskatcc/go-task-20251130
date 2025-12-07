@@ -18,9 +18,19 @@ const localUploadDir = `dist/uploads`
 const localUploadFile = `${localUploadDir}/${func}.zip`
 
 if (fs.existsSync(awsUploadFile)) {
-  fs.mkdirSync(localUploadDir, { recursive: true })
-  fs.copyFileSync(awsUploadFile, localUploadFile)
+  if (!fs.existsSync(localUploadFile)) {
+    fs.mkdirSync(localUploadDir, { recursive: true })
+    fs.copyFileSync(awsUploadFile, localUploadFile)
+    console.info(`[s3 sync] create zip in local uploads: ${localUploadFile}`)
+  }
+  else {
+    fs.copyFileSync(awsUploadFile, localUploadFile)
+    console.info(`[s3 sync] update zip in local uploads: ${localUploadFile}`)
+  }
 }
 else {
-  fs.rmSync(localUploadFile, { force: true })
+  if (fs.existsSync(localUploadFile)) {
+    fs.rmSync(localUploadFile, { force: true })
+    console.info(`[s3 sync] delete zip in local uploads: ${localUploadFile}`)
+  }
 }
