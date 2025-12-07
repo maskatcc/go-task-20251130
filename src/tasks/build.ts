@@ -12,8 +12,8 @@ const funcArgIndex = 2
 const handlerArgIndex = 3
 
 if (process.argv.length < funcArgIndex + 1) {
-    console.error('func arg not found.')
-    process.exit(1)
+  console.error('func arg not found.')
+  process.exit(1)
 }
 
 const func = process.argv[funcArgIndex]
@@ -22,8 +22,8 @@ const sourceDir = `src/funcs/${func}`
 const distDir = `dist/funcs/${func}`
 
 if (!fs.existsSync(sourceDir)) {
-    console.error(`func directory '${sourceDir}' not found.`)
-    process.exit(1)
+  console.error(`func directory '${sourceDir}' not found.`)
+  process.exit(1)
 }
 
 const entryPoint = path.join(sourceDir, handler)
