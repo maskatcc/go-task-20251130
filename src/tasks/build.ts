@@ -17,7 +17,7 @@ if (process.argv.length < funcArgIndex + 1) {
 }
 
 const func = process.argv[funcArgIndex]
-const handler = process.argv.length >= handlerArgIndex + 1 ? process.argv[handlerArgIndex] : 'index.ts'
+const handler = process.argv.length >= handlerArgIndex + 1 ? process.argv[handlerArgIndex]! : 'index.ts'
 const sourceDir = `src/funcs/${func}`
 const distDir = `dist/funcs/${func}`
 
