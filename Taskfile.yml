@@ -92,14 +92,14 @@ tasks:
       - for: { var: FUNC_NAMES }
         task: package:{{ .ITEM }}
 
-  mirror-upload-func:*:
-    desc: mirror from specific uploaded func to local (* is func name).
+  sync-from-repo:*:
+    desc: s3 sync from func package repository to local (* is func name).
     vars:
       FUNC: '{{ index .MATCH 0 }}'
     requires:
       vars: [ FUNC ]
     cmds:
-      - npx tsx src/tasks/mirror-upload-func.ts {{ .FUNC }}
+      - npx tsx src/tasks/sync-from-repo.ts {{ .FUNC }}
     silent: true
 
   upload:*:
@@ -110,7 +110,7 @@ tasks:
       vars: [ FUNC ]
     deps: 
       - package:{{ .FUNC }}
-      - mirror-upload-func:{{ .FUNC }}
+      - sync-from-repo:{{ .FUNC }}
     sources:
       - dist/packages/{{ .FUNC }}.zip
     cmds:
