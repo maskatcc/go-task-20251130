@@ -33,7 +33,7 @@ tasks:
     sources:
       - src/funcs/{{ .FUNC }}/*.ts
     cmds:
-      - npx tsx tasks/build.ts {{ .FUNC }}
+      - npx tsx src/tasks/build.ts {{ .FUNC }}
     generates:
       - dist/funcs/{{ .FUNC }}/*.js
 
@@ -43,7 +43,7 @@ tasks:
       FUNC_NAMES:
         sh: |
           # ls -d src/funcs/*/
-          npx tsx tasks/find-funcs.ts
+          npx tsx src/tasks/find-funcs.ts
     sources:
       - src/funcs/**/*.ts
     cmds:
@@ -79,7 +79,7 @@ tasks:
     sources:
       - dist/funcs/{{ .FUNC }}/*.js
     cmds:
-      - npx tsx tasks/package.ts {{ .FUNC }}
+      - npx tsx src/tasks/package.ts {{ .FUNC }}
     generates:
       - dist/packages/{{ .FUNC }}.zip
 
@@ -88,14 +88,10 @@ tasks:
     vars:
       FUNC_NAMES:
         sh: |
-          npx tsx tasks/find-funcs.ts
-    sources:
-      - dist/funcs/**/*.js
+          npx tsx src/tasks/find-funcs.ts
     cmds:
       - for: { var: FUNC_NAMES }
         task: package:{{ .ITEM }}
-    generates:
-      - dist/packages/*.zip
 
   download:*:
     desc: download specific func (* is func name).
@@ -104,7 +100,7 @@ tasks:
     requires:
       vars: [ FUNC ]
     cmds:
-      - npx tsx tasks/download.ts {{ .FUNC }}
+      - npx tsx src/tasks/download.ts {{ .FUNC }}
     generates:
       - dist/uploads/{{ .FUNC }}.zip
 
@@ -120,7 +116,7 @@ tasks:
     sources:
       - dist/packages/{{ .FUNC }}.zip
     cmds:
-      - npx tsx tasks/upload.ts {{ .FUNC }}
+      - npx tsx src/tasks/upload.ts {{ .FUNC }}
     generates:
       - dist/uploads/{{ .FUNC }}.zip
 
@@ -129,16 +125,12 @@ tasks:
     vars:
       FUNC_NAMES:
         sh: |
-          npx tsx tasks/find-funcs.ts
+          npx tsx src/tasks/find-funcs.ts
     deps:
       - package-all   # すべての関数をzipパッケージにしてからアップロードを開始する
-    sources:
-      - dist/packages/*.zip
     cmds:
       - for: { var: FUNC_NAMES }
         task: upload:{{ .ITEM }}
-    generates:
-      - dist/uploads/*.zip
 
   deploy:*:
     desc: deploy specific func (* is func name).
@@ -149,14 +141,14 @@ tasks:
     deps: 
       - upload:{{ .FUNC }}
     cmds:
-      - npx tsx tasks/deploy.ts {{ .FUNC }}
+      - npx tsx src/tasks/deploy.ts {{ .FUNC }}
 
   deploy-all:
     desc: deploy all funcs in Lambda.
     vars:
       FUNC_NAMES:
         sh: |
-          npx tsx tasks/find-funcs.ts
+          npx tsx src/tasks/find-funcs.ts
     deps:
       - upload-all   # すべての関数をアップロードしてからデプロイを開始する
     cmds:
