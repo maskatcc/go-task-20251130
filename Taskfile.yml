@@ -115,20 +115,28 @@ tasks:
     cmds:
       - task: build-func
 
-  clean-funcs:
+  clean-all:
     cmds:
       - rm -rf dist/funcs/
     silent: true
   
-  build-funcs:
+  build-all:
+    vars:
+      FUNC_NAMES:
+        sh: |
+          # ls -d src/funcs/*/
+          npx tsx tasks/find-funcs.ts
     sources:
       - src/funcs/**/*.ts
     cmds:
-      - npx tsc
+      - for: { var: FUNC_NAMES }
+        task: build-func
+        vars: 
+          FUNC: '{{ .ITEM }}'
     generates:
       - dist/funcs/**/*.js
   
-  rebuild-funcs:
-    deps: [clean-funcs]
+  rebuild-all:
+    deps: [clean-all]
     cmds:
-      - task: build-funcs
+      - task: build-all
