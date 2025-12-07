@@ -87,22 +87,20 @@ tasks:
     desc: package all funcs.
     vars:
       FUNC_NAMES:
-        sh: |
-          npx tsx src/tasks/find-funcs.ts
+        sh: npx tsx src/tasks/find-funcs.ts
     cmds:
       - for: { var: FUNC_NAMES }
         task: package:{{ .ITEM }}
 
-  download:*:
-    desc: download specific func (* is func name).
+  mirror-upload-func:*:
+    desc: mirror from specific uploaded func to local (* is func name).
     vars:
       FUNC: '{{ index .MATCH 0 }}'
     requires:
       vars: [ FUNC ]
     cmds:
-      - npx tsx src/tasks/download.ts {{ .FUNC }}
-    generates:
-      - dist/uploads/{{ .FUNC }}.zip
+      - npx tsx src/tasks/mirror-upload-func.ts {{ .FUNC }}
+    silent: true
 
   upload:*:
     desc: upload specific func (* is func name).
@@ -112,7 +110,7 @@ tasks:
       vars: [ FUNC ]
     deps: 
       - package:{{ .FUNC }}
-      - download:{{ .FUNC }}
+      - mirror-upload-func:{{ .FUNC }}
     sources:
       - dist/packages/{{ .FUNC }}.zip
     cmds:
@@ -124,10 +122,7 @@ tasks:
     desc: upload all funcs to S3.
     vars:
       FUNC_NAMES:
-        sh: |
-          npx tsx src/tasks/find-funcs.ts
-    deps:
-      - package-all   # すべての関数をzipパッケージにしてからアップロードを開始する
+        sh: npx tsx src/tasks/find-funcs.ts
     cmds:
       - for: { var: FUNC_NAMES }
         task: upload:{{ .ITEM }}
@@ -147,10 +142,7 @@ tasks:
     desc: deploy all funcs in Lambda.
     vars:
       FUNC_NAMES:
-        sh: |
-          npx tsx src/tasks/find-funcs.ts
-    deps:
-      - upload-all   # すべての関数をアップロードしてからデプロイを開始する
+        sh: npx tsx src/tasks/find-funcs.ts
     cmds:
       - for: { var: FUNC_NAMES }
         task: deploy:{{ .ITEM }}
