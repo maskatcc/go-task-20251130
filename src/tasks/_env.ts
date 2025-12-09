@@ -1,6 +1,7 @@
 const ENV = {
     s3Bucket: 'maskat-lambda-repo',
     lambdaVersion: 'latest',
+    s3Stub: false,
 }
 
 // yyyy-mm-dd

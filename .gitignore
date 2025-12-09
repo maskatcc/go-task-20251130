@@ -1,4 +1,4 @@
-.s3/
+.s3Stub/
 .task/
 node_modules/
 dist/
