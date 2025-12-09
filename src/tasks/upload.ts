@@ -1,5 +1,7 @@
-import fs from 'fs'
+import fs from 'node:fs'
 import { ENV } from './_env.js'
+import { s3upload } from './utils/s3upload.js'
+import { checksumCrc64Nvme } from './utils/crc64nvme.js'
 
 // console.info('upload')
 
@@ -12,20 +14,32 @@ if (process.argv.length < funcArgIndex + 1) {
   process.exit(1)
 }
 
-const localPackageFile = `dist/packages/${func}.zip`
+const packageFile = `dist/packages/${func}.zip`
 
-if (!fs.existsSync(localPackageFile)) {
-  console.error(`func package '${localPackageFile}' not found.`)
+if (!fs.existsSync(packageFile)) {
+  console.error(`func package '${packageFile}' not found.`)
   process.exit(1)
 }
 
-const s3BucketDir = `.s3/${bucketName}`
-const localUploadDir = `dist/uploads`
+const objectKey = `${ENV.lambdaVersion}/${func}.zip`
+const funcZip = Buffer.from(packageFile)
+let checksum: string | undefined;
 
-fs.mkdirSync(s3BucketDir, { recursive: true })
-fs.copyFileSync(localPackageFile, `${s3BucketDir}/${func}.zip`)
+if (ENV.s3Stub) {
+  checksum = await checksumCrc64Nvme(funcZip)
 
-fs.mkdirSync(localUploadDir, { recursive: true })
-fs.copyFileSync(localPackageFile, `${localUploadDir}/${func}.zip`)
+  fs.mkdirSync(`.s3Stub/${bucketName}/${ENV.lambdaVersion}`, { recursive: true })
+  fs.writeFileSync(`.s3Stub/${bucketName}/${objectKey}.checksum`, checksum)
+}
+else {
+  // upload to s3 (s3 bucket required)
+  checksum = await s3upload(bucketName, objectKey, funcZip)
+}
 
-console.info(`upload successful!`)
+if (checksum) {
+  console.info(`upload successful!`)
+
+  fs.mkdirSync(`dist/uploads/${ENV.lambdaVersion}`, { recursive: true })
+  fs.writeFileSync(`dist/uploads/${objectKey}.checksum`, checksum)
+  console.info(`zip checksum-crc64nvme calculated.`)
+}

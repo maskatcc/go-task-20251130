@@ -1,7 +1,8 @@
-import fs from 'fs'
+import fs from 'node:fs'
 import { ENV } from './_env.js'
+import { s3checksum } from './utils/s3checksum.js'
 
-// console.info('download')
+// console.info('sync from repo')
 
 const funcArgIndex = 2
 const func = process.argv[funcArgIndex]
@@ -12,25 +13,40 @@ if (process.argv.length < funcArgIndex + 1) {
   process.exit(1)
 }
 
-const s3BucketDir = `.s3/${bucketName}`
-const awsUploadFile = `${s3BucketDir}/${func}.zip`
-const localUploadDir = `dist/uploads`
-const localUploadFile = `${localUploadDir}/${func}.zip`
+const objectKey = `${ENV.lambdaVersion}/${func}.zip`
+const uploadChecksumFile = `dist/uploads/${objectKey}.checksum`
+let checksum: string | undefined
 
-if (fs.existsSync(awsUploadFile)) {
-  if (!fs.existsSync(localUploadFile)) {
-    fs.mkdirSync(localUploadDir, { recursive: true })
-    fs.copyFileSync(awsUploadFile, localUploadFile)
-    console.info(`[s3 sync] create zip in local uploads: ${localUploadFile}`)
-  }
-  else {
-    fs.copyFileSync(awsUploadFile, localUploadFile)
-    console.info(`[s3 sync] update zip in local uploads: ${localUploadFile}`)
+
+if (ENV.s3Stub) {
+  const s3Checksum = `.s3Stub/${bucketName}/${objectKey}.checksum`
+
+  if (fs.existsSync(s3Checksum)) {
+    checksum = fs.readFileSync(s3Checksum, 'utf-8')
   }
 }
 else {
-  if (fs.existsSync(localUploadFile)) {
-    fs.rmSync(localUploadFile, { force: true })
-    console.info(`[s3 sync] delete zip in local uploads: ${localUploadFile}`)
+  // sync from s3 (s3 bucket required)
+  checksum = await s3checksum(bucketName, objectKey)
+}
+
+if (checksum) {
+  // func created (maybe created by others)
+  if (!fs.existsSync(uploadChecksumFile)) {
+    fs.mkdirSync(`dist/uploads/${ENV.lambdaVersion}`, { recursive: true })
+    fs.writeFileSync(uploadChecksumFile, checksum)
+    console.info(`[s3 sync] create checksum in local uploads: ${uploadChecksumFile}`)
+  }
+  // func changed (maybe updated by others)
+  else if (fs.readFileSync(uploadChecksumFile, 'utf-8') !== checksum) {
+    fs.writeFileSync(uploadChecksumFile, checksum)
+    console.info(`[s3 sync] update checksum in local uploads: ${uploadChecksumFile}`)
+  }
+}
+else {
+  // func removed (maybe deleted by others)
+  if (fs.existsSync(uploadChecksumFile)) {
+    fs.rmSync(uploadChecksumFile, { force: true })
+    console.info(`[s3 sync] delete checksum in local uploads: ${uploadChecksumFile}`)
   }
 }

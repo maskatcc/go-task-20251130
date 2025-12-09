@@ -98,7 +98,7 @@ tasks:
         task: package:{{ .ITEM }}
 
   sync-from-repo:*:
-    desc: s3 sync from func package repository to local (* is func name).
+    desc: s3 sync checksum from func package repository to local (* is func name).
     vars:
       FUNC: '{{ index .MATCH 0 }}'
     requires:
@@ -121,7 +121,7 @@ tasks:
     cmds:
       - npx tsx src/tasks/upload.ts {{ .FUNC }}
     generates:
-      - dist/uploads/{{ .FUNC }}.zip
+      - dist/uploads/**/{{ .FUNC }}.zip.checksum
 
   upload-all:
     desc: upload all funcs to S3.

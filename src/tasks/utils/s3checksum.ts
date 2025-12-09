@@ -27,7 +27,7 @@ export async function s3checksum(
   }
   catch (error) {
     if (error instanceof NoSuchKey) {
-      console.error(`s3 object '${objectKey}' in '${bucketName}' not found.`);
+      // s3 object not found (no problem)
     }
     else if (error instanceof S3ServiceException) {
       console.error(`s3 object checksum get failed for ${bucketName}. ${error.name}: ${error.message}`)
