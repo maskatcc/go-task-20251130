@@ -8,6 +8,11 @@ tasks:
     cmds:
       - task: build-all
   
+  s3:
+    desc: s3 sync test.
+    cmds:
+      - npx tsx src/tasks/s3sync.ts
+
   clean:*:
     desc: clean up artifact for specific func (* is func name).
     vars:
