@@ -8,10 +8,10 @@ tasks:
     cmds:
       - task: build-all
   
-  s3:
-    desc: s3 sync test.
+  sdk:
+    desc: aws sdk test.
     cmds:
-      - npx tsx src/tasks/s3sync.ts
+      - npx tsx src/tasks/_awssdk.ts
 
   clean:*:
     desc: clean up artifact for specific func (* is func name).

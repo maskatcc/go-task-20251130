@@ -2,3 +2,4 @@
 .task/
 node_modules/
 dist/
+.env
