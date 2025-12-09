@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'node:fs'
 import * as archiver from 'archiver'
 
 // console.info('package')
