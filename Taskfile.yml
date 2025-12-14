@@ -132,6 +132,16 @@ tasks:
       - for: { var: FUNC_NAMES }
         task: upload:{{ .ITEM }}
 
+  sync-from-code:*:
+    desc: lambda sync code's sha256 from lambda to local (* is func name).
+    vars:
+      FUNC: '{{ index .MATCH 0 }}'
+    requires:
+      vars: [ FUNC ]
+    cmds:
+      - npx tsx src/tasks/sync-from-code.ts {{ .FUNC }}
+    silent: false
+
   deploy:*:
     desc: deploy specific func (* is func name).
     vars:
@@ -140,8 +150,13 @@ tasks:
       vars: [ FUNC ]
     deps: 
       - upload:{{ .FUNC }}
+      - sync-from-code:{{ .FUNC }}
+    sources:
+      - dist/uploads/**/{{ .FUNC }}.zip.checksum
     cmds:
       - npx tsx src/tasks/deploy.ts {{ .FUNC }}
+    generates:
+      - dist/deploys/**/{{ .FUNC }}.codesha256
 
   deploy-all:
     desc: deploy all funcs in Lambda.
