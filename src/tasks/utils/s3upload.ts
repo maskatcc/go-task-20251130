@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import { Upload } from '@aws-sdk/lib-storage'
 import { S3ClientFactory } from './awsclient.js'
 import { checksumCrc64Nvme } from './crc64nvme.js'
@@ -6,19 +7,19 @@ import { ProgressBar } from './progressbar.js'
 export async function s3upload(
   bucketName: string, 
   objectKey: string, 
-  objectBody: Buffer
+  localFuncFile: string
 ): Promise<string | undefined> {
   const progressBar = new ProgressBar(`uploading '${objectKey}' to '${bucketName}'`)
 
   try {
-    const checksum = await checksumCrc64Nvme(objectBody)
+    const checksum = await checksumCrc64Nvme(localFuncFile)
 
     const upload = new Upload({
       client: S3ClientFactory.create(),
       params: {
         Bucket: bucketName,
         Key: objectKey,
-        Body: objectBody,
+        Body: fs.createReadStream(localFuncFile),
         ChecksumAlgorithm: 'CRC64NVME',
         ChecksumCRC64NVME: checksum,
       },

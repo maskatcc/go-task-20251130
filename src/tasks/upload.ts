@@ -22,18 +22,17 @@ if (!fs.existsSync(packageFile)) {
 }
 
 const objectKey = `${ENV.lambdaVersion}/${func}.zip`
-const funcZip = Buffer.from(packageFile)
 let checksum: string | undefined;
 
 if (ENV.s3Stub) {
-  checksum = await checksumCrc64Nvme(funcZip)
+  checksum = await checksumCrc64Nvme(packageFile)
 
   fs.mkdirSync(`.s3Stub/${bucketName}/${ENV.lambdaVersion}`, { recursive: true })
   fs.writeFileSync(`.s3Stub/${bucketName}/${objectKey}.checksum`, checksum)
 }
 else {
   // upload to s3 (s3 bucket required)
-  checksum = await s3upload(bucketName, objectKey, funcZip)
+  checksum = await s3upload(bucketName, objectKey, packageFile)
 }
 
 if (checksum) {
