@@ -6,14 +6,14 @@ import { checksumCrc64Nvme } from './utils/crc64nvme.js'
 // console.info('upload')
 
 const funcArgIndex = 2
-const func = process.argv[funcArgIndex]
-const bucketName = ENV.s3Bucket
 
 if (process.argv.length < funcArgIndex + 1) {
   console.error('func arg not found.')
   process.exit(1)
 }
 
+const func = process.argv[funcArgIndex]
+const bucketName = ENV.s3Bucket
 const packageFile = `dist/packages/${func}.zip`
 
 if (!fs.existsSync(packageFile)) {

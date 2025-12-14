@@ -5,18 +5,18 @@ import { s3checksum } from './utils/s3checksum.js'
 // console.info('sync from repo')
 
 const funcArgIndex = 2
-const func = process.argv[funcArgIndex]
-const bucketName = ENV.s3Bucket
 
 if (process.argv.length < funcArgIndex + 1) {
   console.error('func arg not found.')
   process.exit(1)
 }
 
+const func = process.argv[funcArgIndex]
+const bucketName = ENV.s3Bucket
 const objectKey = `${ENV.lambdaVersion}/${func}.zip`
-const uploadChecksumFile = `dist/uploads/${objectKey}.checksum`
-let checksum: string | undefined
+const hashFile = `dist/uploads/${objectKey}.checksum`
 
+let checksum: string | undefined
 
 if (ENV.s3Stub) {
   const s3Checksum = `.s3Stub/${bucketName}/${objectKey}.checksum`
@@ -32,21 +32,21 @@ else {
 
 if (checksum) {
   // func created (maybe created by others)
-  if (!fs.existsSync(uploadChecksumFile)) {
+  if (!fs.existsSync(hashFile)) {
     fs.mkdirSync(`dist/uploads/${ENV.lambdaVersion}`, { recursive: true })
-    fs.writeFileSync(uploadChecksumFile, checksum)
-    console.info(`[s3 sync] create checksum in local uploads: ${uploadChecksumFile}`)
+    fs.writeFileSync(hashFile, checksum)
+    console.info(`[s3 sync] create checksum in local uploads: ${hashFile}`)
   }
   // func changed (maybe updated by others)
-  else if (fs.readFileSync(uploadChecksumFile, 'utf-8') !== checksum) {
-    fs.writeFileSync(uploadChecksumFile, checksum)
-    console.info(`[s3 sync] update checksum in local uploads: ${uploadChecksumFile}`)
+  else if (fs.readFileSync(hashFile, 'utf-8') !== checksum) {
+    fs.writeFileSync(hashFile, checksum)
+    console.info(`[s3 sync] update checksum in local uploads: ${hashFile}`)
   }
 }
 else {
   // func removed (maybe deleted by others)
-  if (fs.existsSync(uploadChecksumFile)) {
-    fs.rmSync(uploadChecksumFile, { force: true })
-    console.info(`[s3 sync] delete checksum in local uploads: ${uploadChecksumFile}`)
+  if (fs.existsSync(hashFile)) {
+    fs.rmSync(hashFile, { force: true })
+    console.info(`[s3 sync] delete checksum in local uploads: ${hashFile}`)
   }
 }
