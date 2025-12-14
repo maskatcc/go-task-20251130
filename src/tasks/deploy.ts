@@ -5,10 +5,11 @@ import { getFunc } from './utils/lambda-get.js'
 
 // console.info('deploy')
 
-const func = funcArg()
 const workload = ENV.workload
+const func = funcArg()
+const workload_func = `${func}-${workload}`
 
-if (!fs.existsSync(`dist/deploys/${workload}/${func}.codesha256`)) {
+if (!fs.existsSync(`dist/deploys/${workload}/${workload_func}.codesha256`)) {
   console.error('lambda code sha256 not found. maybe func not created')
   process.exit(1)
 }
@@ -16,7 +17,7 @@ if (!fs.existsSync(`dist/deploys/${workload}/${func}.codesha256`)) {
 const bucketName = ENV.s3Bucket
 const objectKey = `${ENV.lambdaVersion}/${func}.zip`
 
-const deployResult = await deployFunc(func, bucketName, objectKey)
+const deployResult = await deployFunc(workload_func, bucketName, objectKey)
 
 // AWS Lambda関数の状態の追跡 | Amazon Web Services ブログ
 // https://aws.amazon.com/jp/blogs/news/tracking-the-state-of-lambda-functions/
@@ -40,12 +41,13 @@ const wait = (msec: number): Promise<void> => {
 
 await wait(waitInterval)
 
-let getResult = await getFunc(func)
+let getResult = await getFunc(workload_func)
 
 while (true) {
   const state = getResult.Configuration?.State
   const updateStatus = getResult.Configuration?.LastUpdateStatus
 
+  // update finished!
   if (state === 'Active' && updateStatus === 'Successful') {
     codeSha256 = getResult.Configuration?.CodeSha256
     console.info(``)
@@ -53,12 +55,14 @@ while (true) {
     break
   }
 
+  // update error
   if (state !== 'Active' || updateStatus !== 'InProgress') {
     console.info(``)
     console.error(`unknown deploy error. ${getResult}`)
     break
   }
 
+  // updating...
   const reasonCode = getResult.Configuration?.LastUpdateStatusReasonCode
   const reason = getResult.Configuration?.LastUpdateStatusReason
   const message = `${reason} ${updateStatus}(${reasonCode})...`
@@ -73,11 +77,11 @@ while (true) {
     messageCache = message
   }
 
-  getResult = await getFunc(func)
+  getResult = await getFunc(workload_func)
 }
 
 if (codeSha256) {
   fs.mkdirSync(`dist/deploys/${workload}`, { recursive: true })
-  fs.writeFileSync(`dist/deploys/${workload}/${func}.codesha256`, codeSha256)
+  fs.writeFileSync(`dist/deploys/${workload}/${workload_func}.codesha256`, codeSha256)
   console.info(`lambda code sha256 saved.`)
 }

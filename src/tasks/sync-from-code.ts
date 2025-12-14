@@ -5,14 +5,14 @@ import { ResourceNotFoundException } from '@aws-sdk/client-lambda'
 
 // console.info('sync from code')
 
-const func = funcArg()
 const workload = ENV.workload
-const hashFile = `dist/deploys/${workload}/${func}.codesha256`
+const workload_func = `${funcArg()}-${workload}`
+const hashFile = `dist/deploys/${workload}/${workload_func}.codesha256`
 
 let codeSha256: string | undefined = undefined
 
 try {
-  const getResult = await getFunc(func)
+  const getResult = await getFunc(workload_func)
   codeSha256 = getResult.Configuration?.CodeSha256
 }
 catch (error: any) {

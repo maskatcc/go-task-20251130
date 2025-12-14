@@ -2,6 +2,9 @@
 
 version: '3'
 
+dotenv:
+  - .env
+
 tasks:
   default:
     desc: build all funcs.
@@ -121,7 +124,7 @@ tasks:
     cmds:
       - npx tsx src/tasks/upload.ts {{ .FUNC }}
     generates:
-      - dist/uploads/**/{{ .FUNC }}.zip.checksum
+      - dist/uploads/{{ .LAMBDA_VERSION }}/{{ .FUNC }}.zip.checksum
 
   upload-all:
     desc: upload all funcs to S3.
@@ -140,7 +143,7 @@ tasks:
       vars: [ FUNC ]
     cmds:
       - npx tsx src/tasks/sync-from-code.ts {{ .FUNC }}
-    silent: false
+    silent: true
 
   deploy:*:
     desc: deploy specific func (* is func name).
@@ -152,11 +155,11 @@ tasks:
       - upload:{{ .FUNC }}
       - sync-from-code:{{ .FUNC }}
     sources:
-      - dist/uploads/**/{{ .FUNC }}.zip.checksum
+      - dist/uploads/{{ .LAMBDA_VERSION }}/{{ .FUNC }}.zip.checksum
     cmds:
       - npx tsx src/tasks/deploy.ts {{ .FUNC }}
     generates:
-      - dist/deploys/**/{{ .FUNC }}.codesha256
+      - dist/deploys/{{ .WORKLOAD }}/{{ .FUNC }}-{{ .WORKLOAD }}.codesha256
 
   deploy-all:
     desc: deploy all funcs in Lambda.
