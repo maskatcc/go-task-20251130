@@ -19,11 +19,11 @@ tasks:
   clean:*:
     desc: clean up artifact for specific func (* is func name).
     vars:
-      FUNC: '{{ index .MATCH 0 }}'
+      FUNC: '{{index .MATCH 0}}'
     requires:
-      vars: [ FUNC ]
+      vars: [FUNC]
     cmds:
-      - rm -rf dist/funcs/{{ .FUNC }}/
+      - rm -rf dist/funcs/{{.FUNC}}/
     silent: true
 
   clean-all:
@@ -35,15 +35,15 @@ tasks:
   build:*:
     desc: build specific func (* is func name).
     vars:
-      FUNC: '{{ index .MATCH 0 }}'
+      FUNC: '{{index .MATCH 0}}'
     requires:
-      vars: [ FUNC ]
+      vars: [FUNC]
     sources:
-      - src/funcs/{{ .FUNC }}/*.ts
+      - src/funcs/{{.FUNC}}/*.ts
     cmds:
-      - npx tsx src/tasks/build.ts {{ .FUNC }}
+      - npx tsx src/tasks/build.ts {{.FUNC}}
     generates:
-      - dist/funcs/{{ .FUNC }}/*.js
+      - dist/funcs/{{.FUNC}}/*.js
 
   build-all:
     desc: build all funcs.
@@ -55,19 +55,19 @@ tasks:
     sources:
       - src/funcs/**/*.ts
     cmds:
-      - for: { var: FUNC_NAMES }
-        task: build:{{ .ITEM }}
+      - for: {var: FUNC_NAMES}
+        task: build:{{.ITEM}}
     generates:
       - dist/funcs/**/*.js
 
   rebuild:*:
     desc: rebuild specific func (* is func name).
     vars:
-      FUNC: '{{ index .MATCH 0 }}'
+      FUNC: '{{index .MATCH 0}}'
     deps: 
-      - clean:{{ .FUNC }}
+      - clean:{{.FUNC}}
     cmds:
-      - task: build:{{ .FUNC }}
+      - task: build:{{.FUNC}}
 
   rebuild-all:
     desc: rebuild all funcs.
@@ -79,17 +79,17 @@ tasks:
   package:*:
     desc: package specific func (* is func name).
     vars:
-      FUNC: '{{ index .MATCH 0 }}'
+      FUNC: '{{index .MATCH 0}}'
     requires:
-      vars: [ FUNC ]
+      vars: [FUNC]
     deps: 
-      - build:{{ .FUNC }}
+      - build:{{.FUNC}}
     sources:
-      - dist/funcs/{{ .FUNC }}/*.js
+      - dist/funcs/{{.FUNC}}/*.js
     cmds:
-      - npx tsx src/tasks/package.ts {{ .FUNC }}
+      - npx tsx src/tasks/package.ts {{.FUNC}}
     generates:
-      - dist/packages/{{ .FUNC }}.zip
+      - dist/packages/{{.FUNC}}.zip
 
   package-all:
     desc: package all funcs.
@@ -97,34 +97,34 @@ tasks:
       FUNC_NAMES:
         sh: npx tsx src/tasks/find-funcs.ts
     cmds:
-      - for: { var: FUNC_NAMES }
-        task: package:{{ .ITEM }}
+      - for: {var: FUNC_NAMES}
+        task: package:{{.ITEM}}
 
   sync-from-repo:*:
     desc: s3 sync checksum from func package repository to local (* is func name).
     vars:
-      FUNC: '{{ index .MATCH 0 }}'
+      FUNC: '{{index .MATCH 0}}'
     requires:
-      vars: [ FUNC ]
+      vars: [FUNC]
     cmds:
-      - npx tsx src/tasks/sync-from-repo.ts {{ .FUNC }}
+      - npx tsx src/tasks/sync-from-repo.ts {{.FUNC}}
     silent: true
 
   upload:*:
     desc: upload specific func (* is func name).
     vars:
-      FUNC: '{{ index .MATCH 0 }}'
+      FUNC: '{{index .MATCH 0}}'
     requires:
-      vars: [ FUNC ]
+      vars: [FUNC]
     deps: 
-      - package:{{ .FUNC }}
-      - sync-from-repo:{{ .FUNC }}
+      - package:{{.FUNC}}
+      - sync-from-repo:{{.FUNC}}
     sources:
-      - dist/packages/{{ .FUNC }}.zip
+      - dist/packages/{{.FUNC}}.zip
     cmds:
-      - npx tsx src/tasks/upload.ts {{ .FUNC }}
+      - npx tsx src/tasks/upload.ts {{.FUNC}}
     generates:
-      - dist/uploads/{{ .LAMBDA_VERSION }}/{{ .FUNC }}.zip.checksum
+      - dist/uploads/{{.LAMBDA_VERSION}}/{{.FUNC}}.zip.checksum
 
   upload-all:
     desc: upload all funcs to S3.
@@ -132,34 +132,34 @@ tasks:
       FUNC_NAMES:
         sh: npx tsx src/tasks/find-funcs.ts
     cmds:
-      - for: { var: FUNC_NAMES }
-        task: upload:{{ .ITEM }}
+      - for: {var: FUNC_NAMES}
+        task: upload:{{.ITEM}}
 
   sync-from-code:*:
     desc: lambda sync code's sha256 from lambda to local (* is func name).
     vars:
-      FUNC: '{{ index .MATCH 0 }}'
+      FUNC: '{{index .MATCH 0}}'
     requires:
-      vars: [ FUNC ]
+      vars: [FUNC]
     cmds:
-      - npx tsx src/tasks/sync-from-code.ts {{ .FUNC }}
+      - npx tsx src/tasks/sync-from-code.ts {{.FUNC}}
     silent: true
 
   deploy:*:
     desc: deploy specific func (* is func name).
     vars:
-      FUNC: '{{ index .MATCH 0 }}'
+      FUNC: '{{index .MATCH 0}}'
     requires:
-      vars: [ FUNC ]
+      vars: [FUNC]
     deps: 
-      - upload:{{ .FUNC }}
-      - sync-from-code:{{ .FUNC }}
+      - upload:{{.FUNC}}
+      - sync-from-code:{{.FUNC}}
     sources:
-      - dist/uploads/{{ .LAMBDA_VERSION }}/{{ .FUNC }}.zip.checksum
+      - dist/uploads/{{.LAMBDA_VERSION}}/{{.FUNC}}.zip.checksum
     cmds:
-      - npx tsx src/tasks/deploy.ts {{ .FUNC }}
+      - npx tsx src/tasks/deploy.ts {{.FUNC}}
     generates:
-      - dist/deploys/{{ .WORKLOAD }}/{{ .FUNC }}-{{ .WORKLOAD }}.codesha256
+      - dist/deploys/{{.WORKLOAD}}/{{.FUNC}}-{{.WORKLOAD}}.codesha256
 
   deploy-all:
     desc: deploy all funcs in Lambda.
@@ -167,5 +167,5 @@ tasks:
       FUNC_NAMES:
         sh: npx tsx src/tasks/find-funcs.ts
     cmds:
-      - for: { var: FUNC_NAMES }
-        task: deploy:{{ .ITEM }}
+      - for: {var: FUNC_NAMES}
+        task: deploy:{{.ITEM}}
