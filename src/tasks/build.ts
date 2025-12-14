@@ -1,23 +1,12 @@
 import fs from 'node:fs'
-import path from 'path'
+import path from 'node:path'
 import esbuild from 'esbuild'
+import { funcArg } from './_env.js'
 
 // console.info('build')
 
-// for(var i = 0; i < process.argv.length; i++) {
-//   console.log('argv[' + i + '] = ' + process.argv[i])
-// }
-
-const funcArgIndex = 2
-const handlerArgIndex = 3
-
-if (process.argv.length < funcArgIndex + 1) {
-  console.error('func arg not found.')
-  process.exit(1)
-}
-
-const func = process.argv[funcArgIndex]
-const handler = process.argv.length >= handlerArgIndex + 1 ? process.argv[handlerArgIndex]! : 'index.ts'
+const func = funcArg()
+const handler = 'index.ts'
 const sourceDir = `src/funcs/${func}`
 const distDir = `dist/funcs/${func}`
 

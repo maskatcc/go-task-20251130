@@ -1,18 +1,11 @@
 import fs from 'node:fs'
-import { ENV } from './_env.js'
+import { ENV, funcArg } from './_env.js'
 import { s3upload } from './utils/s3upload.js'
 import { checksumCrc64Nvme } from './utils/crc64nvme.js'
 
 // console.info('upload')
 
-const funcArgIndex = 2
-
-if (process.argv.length < funcArgIndex + 1) {
-  console.error('func arg not found.')
-  process.exit(1)
-}
-
-const func = process.argv[funcArgIndex]
+const func = funcArg()
 const bucketName = ENV.s3Bucket
 const packageFile = `dist/packages/${func}.zip`
 

@@ -1,20 +1,12 @@
 import fs from 'node:fs'
-import 'dotenv/config'
-import { ENV } from './_env.js'
+import { ENV, funcArg } from './_env.js'
 import { deployFunc } from './utils/lambda-codeupdate.js'
 import { getFunc } from './utils/lambda-get.js'
 
 // console.info('deploy')
 
-const funcArgIndex = 2
-
-if (process.argv.length < funcArgIndex + 1) {
-  console.error('func arg not found.')
-  process.exit(1)
-}
-
-const func = process.argv[funcArgIndex] || ''
-const workload = process.env.WORKLOAD || 'poc'
+const func = funcArg()
+const workload = ENV.workload
 
 if (!fs.existsSync(`dist/deploys/${workload}/${func}.codesha256`)) {
   console.error('lambda code sha256 not found. maybe func not created')

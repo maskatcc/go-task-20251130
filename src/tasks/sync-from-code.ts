@@ -1,19 +1,12 @@
 import fs from 'node:fs'
-import 'dotenv/config'
+import { ENV, funcArg } from './_env.js'
 import { getFunc } from './utils/lambda-get.js'
 import { ResourceNotFoundException } from '@aws-sdk/client-lambda'
 
 // console.info('sync from code')
 
-const funcArgIndex = 2
-
-if (process.argv.length < funcArgIndex + 1) {
-  console.error('func arg not found.')
-  process.exit(1)
-}
-
-const func = process.argv[funcArgIndex] || ''
-const workload = process.env.WORKLOAD || 'poc'
+const func = funcArg()
+const workload = ENV.workload
 const hashFile = `dist/deploys/${workload}/${func}.codesha256`
 
 let codeSha256: string | undefined = undefined

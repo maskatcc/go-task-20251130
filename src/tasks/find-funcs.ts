@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import path from 'path'
+import path from 'node:path'
 
 const funcsDir = './src/funcs'
 const funcNames = fs.readdirSync(funcsDir).filter((name) => fs.statSync(path.join(funcsDir, name)).isDirectory())

@@ -1,16 +1,10 @@
 import fs from 'node:fs'
 import * as archiver from 'archiver'
+import { funcArg } from './_env.js'
 
 // console.info('package')
 
-const funcArgIndex = 2
-
-if (process.argv.length < funcArgIndex + 1) {
-  console.error('func arg not found.')
-  process.exit(1)
-}
-
-const func = process.argv[funcArgIndex]
+const func = funcArg()
 const distFuncDir = `dist/funcs/${func}`
 const distPackageDir = `dist/packages`
 const distPackageFile = `${distPackageDir}/${func}.zip`
