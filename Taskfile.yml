@@ -16,6 +16,16 @@ tasks:
     cmds:
       - npx tsx src/tasks/_awssdk.ts
 
+  install-deps:
+    desc: install depending npm packages
+    run: once
+    status:
+      - test -f node_modules/.installed
+    cmds:
+      - npm install
+      - touch node_modules/.installed
+    silent: false
+
   clean:*:
     desc: clean up artifact for specific func (* is func name).
     vars:
@@ -30,6 +40,7 @@ tasks:
     desc: clean up all artifacts.
     cmds:
       - rm -rf dist/funcs/
+      - rm -rf node_modules/.installed
     silent: true
 
   build:*:
@@ -38,6 +49,8 @@ tasks:
       FUNC: '{{index .MATCH 0}}'
     requires:
       vars: [FUNC]
+    deps:
+      - install-deps
     sources:
       - src/funcs/{{.FUNC}}/*.ts
     cmds:
