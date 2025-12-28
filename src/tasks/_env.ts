@@ -2,6 +2,7 @@ const ENV = {
   s3Bucket: process.env.S3_BUCKET || 'maskat-lambda-repo',
   lambdaVersion: process.env.LAMBDA_VERSION || 'latest',
   workload: process.env.WORKLOAD || `poc`,
+  logKeywords: (process.env.LOG_KEYWORDS || '').split(' ').filter(Boolean),
   s3Stub: false,
 }
 

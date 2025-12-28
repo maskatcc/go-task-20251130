@@ -2,7 +2,7 @@ import { styleText } from 'node:util'
 import { FilterLogEventsCommand, type FilterLogEventsCommandOutput } from '@aws-sdk/client-cloudwatch-logs'
 import { CloudWatchLogsClientFactory } from './awsclient.js'
 import { parseLambdaReport } from './lambda-regex.js'
-import { formatDateTime } from '../_env.js'
+import { ENV, formatDateTime } from '../_env.js'
 
 type FuncLogsOptions = {
   recentHours?: number | undefined   // default: last 8 hours
@@ -18,6 +18,8 @@ export async function getFuncLogs(
   const logGroupName = `/aws/lambda/${funcName}`
   const recentHour = options.recentHours ?? 8
   const requestLimit = options.requestLimit ?? 10
+  const dynamicFilterPattern = options.filterPattern ?  [options.filterPattern] : []
+  const filterPatterns = [ ...ENV.logKeywords, ...dynamicFilterPattern ]
 
   const eventLogs: string[] = []
   let requestCount = 0
@@ -34,7 +36,7 @@ export async function getFuncLogs(
     for (const event of response.events ?? []) {
       const datetime = formatDateTime(event.timestamp)
       const message = event.message?.trim() ?? ''
-      const matchMessage = matchFilter(message, options.filterPattern)
+      const matchMessage = matchFilter(message, filterPatterns)
 
       if (matchMessage) {
         eventLogs.push(`[${datetime}] ${matchMessage}`)
@@ -61,13 +63,13 @@ export async function getFuncLogs(
   return eventLogs
 }
 
-function matchFilter(message: string, pattern: string | undefined): string | undefined {
-  if (!pattern) {
+function matchFilter(message: string, patterns: string[]): string | undefined {
+  if (patterns.length === 0) {
     return undefined
   }
 
   const flag = 'i' // 大文字・小文字を区別しない
-  const regex = new RegExp(`(?<filter>${pattern})`, flag)
+  const regex = new RegExp(`(?<filter>${patterns.join('|')})`, flag)
   const match = message.match(regex)
 
   // フィルター条件にマッチした部分を強調表示して返す
