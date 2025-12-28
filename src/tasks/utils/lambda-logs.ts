@@ -1,3 +1,4 @@
+import { styleText } from 'node:util'
 import { FilterLogEventsCommand, type FilterLogEventsCommandOutput } from '@aws-sdk/client-cloudwatch-logs'
 import { CloudWatchLogsClientFactory } from './awsclient.js'
 import { parseLambdaReport } from './lambda-regex.js'
@@ -6,7 +7,6 @@ import { formatDateTime } from '../_env.js'
 type FuncLogsOptions = {
   recentHours?: number | undefined   // default: last 8 hours
   requestLimit?: number | undefined  // default: 10
-  requestId?: string | undefined
   filterPattern?: string | undefined
 }
 
@@ -20,6 +20,7 @@ export async function getFuncLogs(
   const requestLimit = options.requestLimit ?? 10
 
   const eventLogs: string[] = []
+  let requestCount = 0
   let nextToken: string | undefined = undefined
 
   while (true) {
@@ -33,12 +34,18 @@ export async function getFuncLogs(
     for (const event of response.events ?? []) {
       const datetime = formatDateTime(event.timestamp)
       const message = event.message?.trim() ?? ''
+      const matchMessage = matchFilter(message, options.filterPattern)
+
+      if (matchMessage) {
+        eventLogs.push(`[${datetime}] ${matchMessage}`)
+      }
+
       const report = parseLambdaReport(message)
 
       if (report) {
-        const logCount = eventLogs.push(`[${datetime}] ${report}`)
+        eventLogs.push(`[${datetime}] ${report}`)
 
-        if (requestLimit <= logCount) {
+        if (requestLimit <= ++requestCount) {
           return eventLogs
         }
       }
@@ -52,4 +59,20 @@ export async function getFuncLogs(
   }
   
   return eventLogs
+}
+
+function matchFilter(message: string, pattern: string | undefined): string | undefined {
+  if (!pattern) {
+    return undefined
+  }
+
+  const flag = 'i' // 大文字・小文字を区別しない
+  const regex = new RegExp(`(?<filter>${pattern})`, flag)
+  const match = message.match(regex)
+
+  // フィルター条件にマッチした部分を強調表示して返す
+  if (match && match.groups) {
+    const matchingText = match.groups.filter!
+    return message.replaceAll(matchingText, styleText('bgGray', matchingText))
+  }
 }

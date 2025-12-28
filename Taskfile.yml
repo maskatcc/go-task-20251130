@@ -189,9 +189,8 @@ tasks:
       FUNC: '{{index .MATCH 0}}'
       RECENT: '{{.RECENT| default 8}}'
       LIMIT: '{{.LIMIT| default 10}}'
-      REQ:
-      FILTER:
+      FILTER: '{{.FILTER| default ""}}'
     requires:
       vars: [FUNC]
     cmds:
-      - npx tsx src/tasks/logs.ts {{.FUNC}} --recent-hours={{.RECENT}} --request-limit={{.LIMIT}} --request-id={{.REQ}} --filter-pattern={{.FILTER}}
+      - npx tsx src/tasks/logs.ts {{.FUNC}} --recent-hours={{.RECENT}} --request-limit={{.LIMIT}} --filter-pattern={{.FILTER}}

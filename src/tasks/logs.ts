@@ -9,13 +9,11 @@ const workload_func = `${func}-${workload}`
 
 const recentHours = optionArg('recent-hours')
 const requestLimit = optionArg('request-limit')
-const requestId = optionArg('request-id')
 const filterPattern = optionArg('filter-pattern')
 
 const logs = await getFuncLogs(workload_func, {
   recentHours: tryNumber(recentHours),
   requestLimit: tryNumber(requestLimit),
-  requestId,
   filterPattern
 })
 
