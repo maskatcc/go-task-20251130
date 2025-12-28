@@ -56,7 +56,7 @@ tasks:
     cmds:
       - npx tsx src/tasks/build.ts {{.FUNC}}
     generates:
-      - dist/funcs/{{.FUNC}}/*.js
+      - dist/funcs/{{.FUNC}}/*.mjs
 
   build-all:
     desc: build all funcs.
@@ -71,7 +71,7 @@ tasks:
       - for: {var: FUNC_NAMES}
         task: build:{{.ITEM}}
     generates:
-      - dist/funcs/**/*.js
+      - dist/funcs/**/*.mjs
 
   rebuild:*:
     desc: rebuild specific func (* is func name).
@@ -98,7 +98,7 @@ tasks:
     deps: 
       - build:{{.FUNC}}
     sources:
-      - dist/funcs/{{.FUNC}}/*.js
+      - dist/funcs/{{.FUNC}}/*.mjs
     cmds:
       - npx tsx src/tasks/package.ts {{.FUNC}}
     generates:

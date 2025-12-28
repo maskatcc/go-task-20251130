@@ -28,6 +28,6 @@ const streamWriter = fs.createWriteStream(distPackageFile);
 
 streamWriter.on("close", () => console.log(`zip archive successful!`))
 zipArchiver.pipe(streamWriter)
-zipArchiver.glob(`*.js`, { cwd: distFuncDir })
-zipArchiver.glob(`*.js.map`, { cwd: distFuncDir })
+zipArchiver.glob(`*.mjs`, { cwd: distFuncDir })
+zipArchiver.glob(`*.mjs.map`, { cwd: distFuncDir })
 zipArchiver.finalize();

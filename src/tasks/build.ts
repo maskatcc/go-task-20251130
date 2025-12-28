@@ -34,10 +34,12 @@ const result = await esbuild.build({
   minify: true,
   sourcemap: true,
   metafile: true,
+  outExtension: { '.js': '.mjs' },    // 出力ファイルを.mjs（ESM）とする
+})
+.then(() => {
+  console.info('build successful!')
 })
 .catch((error) => {
   console.error('Build failed:', error)
   process.exit(1)
 })
-
-console.info('build successful!')
