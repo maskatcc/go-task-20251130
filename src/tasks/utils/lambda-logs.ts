@@ -4,8 +4,10 @@ import { parseLambdaReport } from './lambda-regex.js'
 import { formatDateTime } from '../_env.js'
 
 type FuncLogsOptions = {
-  recentHours?: number   // default: last 8 hours
-  requestLimit?: number  // default: 10
+  recentHours?: number | undefined   // default: last 8 hours
+  requestLimit?: number | undefined  // default: 10
+  requestId?: string | undefined
+  filterPattern?: string | undefined
 }
 
 export async function getFuncLogs(
@@ -24,25 +26,29 @@ export async function getFuncLogs(
     const response: FilterLogEventsCommandOutput = await client.send(new FilterLogEventsCommand({
       logGroupName,
       startTime: Date.now() - recentHour * 60/*min*/ * 60/*sec*/ * 1000/*msec*/,
-      limit: Math.max(requestLimit * 10, 10000),  // 要求リクエスト数の10倍のログ件数があれば足りると想定する
+      limit: Math.min(requestLimit * 10, 10000),  // 要求リクエスト数の10倍のログ件数があれば足りると想定する
       nextToken,
     }))
     
     for (const event of response.events ?? []) {
       const datetime = formatDateTime(event.timestamp)
       const message = event.message?.trim() ?? ''
-
       const report = parseLambdaReport(message)
+
       if (report) {
-        eventLogs.push(`[${datetime}] ${report}`)
+        const logCount = eventLogs.push(`[${datetime}] ${report}`)
+
+        if (requestLimit <= logCount) {
+          return eventLogs
+        }
       }
     }
 
-    nextToken = response.nextToken
-    
-    if (!nextToken || eventLogs.length >= requestLimit) {
+    if (!response.nextToken) {
       break
     }
+
+    nextToken = response.nextToken
   }
   
   return eventLogs
