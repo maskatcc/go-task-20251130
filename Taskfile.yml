@@ -182,3 +182,12 @@ tasks:
     cmds:
       - for: {var: FUNC_NAMES}
         task: deploy:{{.ITEM}}
+
+  logs:*:
+    desc: get logs for specific func (* is func name).
+    vars:
+      FUNC: '{{index .MATCH 0}}'
+    requires:
+      vars: [FUNC]
+    cmds:
+      - npx tsx src/tasks/logs.ts {{.FUNC}}
