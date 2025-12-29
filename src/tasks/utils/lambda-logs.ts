@@ -1,8 +1,9 @@
 import { styleText } from 'node:util'
 import { FilterLogEventsCommand, type FilterLogEventsCommandOutput } from '@aws-sdk/client-cloudwatch-logs'
+import { ENV } from '../_env.js'
+import { formatDateTime_with_age } from './date.js'
 import { CloudWatchLogsClientFactory } from './awsclient.js'
 import { parseLambdaReport } from './lambda-regex.js'
-import { ENV, formatDateTime_with_age } from '../_env.js'
 
 type FuncLogsOptions = {
   recentHours?: number | undefined   // default: last 8 hours
