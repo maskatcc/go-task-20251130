@@ -2,7 +2,7 @@ import { styleText } from 'node:util'
 import { FilterLogEventsCommand, type FilterLogEventsCommandOutput } from '@aws-sdk/client-cloudwatch-logs'
 import { CloudWatchLogsClientFactory } from './awsclient.js'
 import { parseLambdaReport } from './lambda-regex.js'
-import { ENV, formatDateTime } from '../_env.js'
+import { ENV, formatDateTime_with_age } from '../_env.js'
 
 type FuncLogsOptions = {
   recentHours?: number | undefined   // default: last 8 hours
@@ -34,7 +34,7 @@ export async function getFuncLogs(
     }))
     
     for (const event of response.events ?? []) {
-      const datetime = formatDateTime(event.timestamp)
+      const datetime = formatDateTime_with_age(event.timestamp)
       const message = event.message?.trim() ?? ''
       const matchMessage = matchFilter(message, filterPatterns)
 
