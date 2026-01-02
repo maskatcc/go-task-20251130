@@ -194,3 +194,16 @@ tasks:
       vars: [FUNC]
     cmds:
       - npx tsx src/tasks/logs.ts {{.FUNC}} --recent-hours={{.RECENT}} --request-limit={{.LIMIT}} --filter-pattern={{.FILTER}}
+    
+  query:*:
+    desc: query logs insight for specific func (* is func name).
+    vars:
+      FUNC: '{{index .MATCH 0}}'
+      Q: '{{.Q| default "fields @timestamp, @message"}}'
+      RECENT: '{{.RECENT| default 1}}'
+      FILTER: '{{.FILTER| default ""}}'
+      NO_FILTER: '{{.NO_FILTER| default false}}'
+    requires:
+      vars: [FUNC]
+    cmds:
+      - npx tsx src/tasks/logs-query.ts {{.FUNC}} --query="{{.Q}}" --recent-days={{.RECENT}} --filter-pattern={{.FILTER}} --no-filter={{.NO_FILTER}}
