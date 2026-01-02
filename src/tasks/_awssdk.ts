@@ -5,6 +5,7 @@ import { s3upload } from './utils/s3upload.js'
 import { deployFunc } from './utils/lambda-codeupdate.js'
 import { getFunc } from './utils/lambda-get.js'
 import { getFuncLogs } from './utils/lambda-logs.js'
+import { getFuncLogsInsight } from './utils/lambda-logs-insight.js'
 
 const bucketName = ENV.s3Bucket
 const func = 'func1'
@@ -26,8 +27,16 @@ const zipFile = `dist/packages/${func}.zip`
 // const lambdaDeployResult = await deployFunc('func1', bucketName, objectKey)
 // console.info(`lambda deploy result: ${JSON.stringify(lambdaDeployResult, null, 2)}`)
 
-const logs = await getFuncLogs('func1-poc', {})
+// const logs = await getFuncLogs('func1-poc', {})
 
-for (const log of logs) {
-  console.info(log)
+// for (const log of logs) {
+//   console.info(log)
+// }
+
+const query = `fields @timestamp, @message`
+//const query = `stats count() by @requestId`
+const logsInsight = await getFuncLogsInsight('func1-poc', query, { filterPattern: 'report' })
+
+for (const logLine of logsInsight) {
+  console.info(logLine.join(', '))
 }
