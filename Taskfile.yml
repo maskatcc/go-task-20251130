@@ -202,8 +202,8 @@ tasks:
       Q: '{{.Q| default "fields @timestamp, @message"}}'
       RECENT: '{{.RECENT| default 1}}'
       FILTER: '{{.FILTER| default ""}}'
-      NO_FILTER: '{{.NO_FILTER| default false}}'
+      FLAGS: '{{.FLAGS| default ""}}'
     requires:
-      vars: [FUNC]
+      vars: [FUNC, Q]
     cmds:
-      - npx tsx src/tasks/logs-query.ts {{.FUNC}} --query="{{.Q}}" --recent-days={{.RECENT}} --filter-pattern="{{.FILTER}}" --no-filter={{.NO_FILTER}}
+      - npx tsx src/tasks/logs-query.ts {{.FUNC}} --query="{{.Q}}" --recent-days={{.RECENT}} --filter-pattern="{{.FILTER}}" {{.FLAGS}}

@@ -26,6 +26,9 @@ export function optionArg(name: string): string | undefined {
       if (arg.startsWith(`--${name}=`)) {
         return arg.split('=')[1] ?? undefined
       }
+      else if (arg === `--${name}`) {
+        return 'true'
+      }
     }
   }
 }
