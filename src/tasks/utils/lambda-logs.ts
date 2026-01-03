@@ -1,13 +1,22 @@
+import {
+  FilterLogEventsCommand, 
+  type FilterLogEventsCommandOutput
+} from '@aws-sdk/client-cloudwatch-logs'
+
 import { styleText } from 'node:util'
-import { FilterLogEventsCommand, type FilterLogEventsCommandOutput } from '@aws-sdk/client-cloudwatch-logs'
 import { ENV } from '../_env.js'
 import { formatDateTime_with_age } from './date.js'
-import { CloudWatchLogsClientFactory } from './awsclient.js'
 import { parseLambdaReport } from './lambda-regex.js'
+import { CloudWatchLogsClientFactory } from './awsclient.js'
 
-type FuncLogsOptions = {
-  recentHours?: number | undefined   // default: last 8 hours
-  requestLimit?: number | undefined  // default: 10
+const Default = {
+  recentHours: 8,    // last 8 hours
+  requestLimit: 10,  // limit 10 requests
+}
+
+export type FuncLogsOptions = {
+  recentHours?: number | undefined
+  requestLimit?: number | undefined
   filterPattern?: string | undefined
 }
 
@@ -17,8 +26,8 @@ export async function getFuncLogs(
 ): Promise<string[]> {
   const client = CloudWatchLogsClientFactory.create()
   const logGroupName = `/aws/lambda/${funcName}`
-  const recentHour = options.recentHours ?? 8
-  const requestLimit = options.requestLimit ?? 10
+  const recentHour = options.recentHours ?? Default.recentHours
+  const requestLimit = options.requestLimit ?? Default.requestLimit
   const dynamicFilterPattern = options.filterPattern ?  [options.filterPattern] : []
   const filterPatterns = [ ...ENV.logKeywords, ...dynamicFilterPattern ]
 
@@ -29,7 +38,7 @@ export async function getFuncLogs(
   while (true) {
     const response: FilterLogEventsCommandOutput = await client.send(new FilterLogEventsCommand({
       logGroupName,
-      startTime: Date.now() - recentHour * 60/*min*/ * 60/*sec*/ * 1000/*msec*/,
+      startTime: Date.now() - Math.floor(recentHour * 60/*min*/ * 60/*sec*/ * 1000/*msec*/),
       limit: Math.min(requestLimit * 10, 10000),  // 要求リクエスト数の10倍のログ件数があれば足りると想定する
       nextToken,
     }))

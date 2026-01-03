@@ -11,43 +11,45 @@ import { ENV } from "../_env.js";
 import { formatDateTime } from "./date.js";
 import { CloudWatchLogsClientFactory } from "./awsclient.js";
 
-type FuncLogsInsightOptions = {
-  recentDays?: number | undefined   // default: last 1 day
+const Default = {
+  recentDays: 1,     // last 1 day
+  logLimit: 100,     // limit 100 log entries
+}
+
+export type FuncLogsInsightOptions = {
+  recentDays?: number | undefined
   filterPattern?: string | undefined
 }
 
 export async function getFuncLogsInsight(
   funcName: string,
-  queryString: string = 'fields @timestamp, @message',
+  queryString: string,
   options: FuncLogsInsightOptions = {}
 ): Promise<string[][]> {
   const client = CloudWatchLogsClientFactory.create()
-  const logGroupName = `/aws/lambda/${funcName}`
-  const recentDays = options.recentDays ?? 1
-  let filter: string[] | undefined = undefined
+  let queryResponse: StartQueryCommandOutput
 
   if (options.filterPattern !== undefined) {
-    const adhocFilter = options.filterPattern.trim() ?? ''
-    filter = adhocFilter ? adhocFilter.split(' ') : ENV.logKeywords
-  }
+    const adhocFilter = options.filterPattern.trim()
+    const filter = adhocFilter ? adhocFilter.split(' ') : ENV.logKeywords
 
-  if (filter && filter.every(x => x !== '')) {
-    queryString = `filter @message like /(?i)${filter.join('|')}/ | ${queryString}`
+    if (filter.every(x => x !== '')) {
+      queryString = `filter @message like /(?i)${filter.join('|')}/ | ${queryString}`
+    }
   }
 
   console.info(styleText('inverse', queryString.replace(/\n/g, ' ')))
 
-  let queryResponse: StartQueryCommandOutput
-
   try {
-    const nowSec = Math.floor(Date.now() / 1000)   // the number of seconds since 1970/1/1 UTC
+    const nowSec = Math.floor(Date.now() / 1000/*msec*/)   // the number of seconds since 1970/1/1 UTC
+    const recentDays = options.recentDays ?? Default.recentDays
 
     queryResponse = await client.send(new StartQueryCommand({
-      logGroupName,
+      logGroupName: `/aws/lambda/${funcName}`,
       startTime: nowSec - Math.floor(recentDays * 24/*hour*/ * 60/*min*/ * 60/*sec*/),
       endTime: nowSec,
       queryString,
-      limit: 100,   // クエリー結果の上限は100件までとする
+      limit: Default.logLimit,   // クエリー結果の上限は100件までとする
     }))
   }
   catch (error) {

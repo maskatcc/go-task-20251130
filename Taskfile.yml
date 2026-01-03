@@ -206,4 +206,4 @@ tasks:
     requires:
       vars: [FUNC]
     cmds:
-      - npx tsx src/tasks/logs-query.ts {{.FUNC}} --query="{{.Q}}" --recent-days={{.RECENT}} --filter-pattern={{.FILTER}} --no-filter={{.NO_FILTER}}
+      - npx tsx src/tasks/logs-query.ts {{.FUNC}} --query="{{.Q}}" --recent-days={{.RECENT}} --filter-pattern="{{.FILTER}}" --no-filter={{.NO_FILTER}}

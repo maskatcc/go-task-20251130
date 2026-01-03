@@ -17,3 +17,15 @@ export function funcArg(): string {
 
   return process.argv[funcArgIndex] || ''
 }
+
+export function optionArg(name: string): string | undefined {
+  const optionArgIndex = 3
+
+  if (optionArgIndex < process.argv.length) {
+    for (const arg of process.argv.filter((_, index) => optionArgIndex <= index)) {
+      if (arg.startsWith(`--${name}=`)) {
+        return arg.split('=')[1] ?? undefined
+      }
+    }
+  }
+}
