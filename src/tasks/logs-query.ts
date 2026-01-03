@@ -30,7 +30,7 @@ for (const logLine of logsInsight) {
 
 function tryNumber(value: string | undefined): number | undefined {
   if (value) {
-    const num = parseInt(value)
+    const num = Number(value)
 
     if (!isNaN(num)) {
       return num

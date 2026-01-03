@@ -40,10 +40,12 @@ export async function getFuncLogsInsight(
   let queryResponse: StartQueryCommandOutput
 
   try {
+    const nowSec = Math.floor(Date.now() / 1000)   // the number of seconds since 1970/1/1 UTC
+
     queryResponse = await client.send(new StartQueryCommand({
       logGroupName,
-      startTime: Date.now() - recentDays * 24/*hour*/ * 60/*min*/ * 60/*sec*/ * 1000/*msec*/,
-      endTime: Date.now(),
+      startTime: nowSec - Math.floor(recentDays * 24/*hour*/ * 60/*min*/ * 60/*sec*/),
+      endTime: nowSec,
       queryString,
       limit: 100,   // クエリー結果の上限は100件までとする
     }))
